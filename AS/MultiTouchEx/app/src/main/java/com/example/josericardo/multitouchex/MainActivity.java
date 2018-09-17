@@ -1,4 +1,4 @@
-package com.example.josericardo.singletouchex;
+package com.example.josericardo.multitouchex;
 
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
