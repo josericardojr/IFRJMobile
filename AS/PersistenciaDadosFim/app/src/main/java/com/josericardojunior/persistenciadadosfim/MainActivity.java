@@ -37,7 +37,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
 
         } else if (view == btnSQL){
-
+            Intent intent = new Intent(MainActivity.this,
+                    DatabaseActivity.class);
+            startActivity(intent);
         }
     }
 }
