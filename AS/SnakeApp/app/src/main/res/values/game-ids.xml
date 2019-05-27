@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Google Play game services IDs.
+Save this file as res/values/games-ids.xml in your project.
+-->
+<resources>
+    <!-- app_id -->
+    <string name="app_id" translatable="false">702232541795</string>
+    <!-- package_name -->
+    <string name="package_name" translatable="false">com.josericardojr.snakeapp</string>
+    <!-- achievement Bored -->
+    <string name="achievement_bored" translatable="false">CgkI4_TIgrgUEAIQAQ</string>
+    <!-- achievement Addicted -->
+    <string name="achievement_addicted" translatable="false">CgkI4_TIgrgUEAIQAg</string>
+    <!-- leaderboard High Score -->
+    <string name="leaderboard_high_score" translatable="false">CgkI4_TIgrgUEAIQAw</string>
+</resources>

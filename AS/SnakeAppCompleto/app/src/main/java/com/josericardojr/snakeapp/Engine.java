@@ -9,7 +9,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.games.Games;
 
@@ -131,19 +130,13 @@ public class Engine extends SurfaceView implements Runnable {
         moveSnake();
 
         if (detectDeath()){
-            // Update the global score
-            Games.getLeaderboardsClient(context,
-                    GoogleSignIn.getLastSignedInAccount(context))
-                    .submitScore(
-                            context.getString(R.string.leaderboard_high_score), score);
+            Games.getLeaderboardsClient(context, GoogleSignIn.getLastSignedInAccount(context))
+                    .submitScore(context.getString(R.string.leaderboard_easy_high_score), score);
 
-            // Adds an increment to the achievement
-            Games.getAchievementsClient(context,
-                    GoogleSignIn.getLastSignedInAccount(context))
-                    .increment(context.getString(R.string.achievement_addicted), 1);
+            Games.getAchievementsClient(context, GoogleSignIn.getLastSignedInAccount(context))
+                    .increment(context.getString(R.string.achievement_bored), 1);
 
             newGame();
-
         }
     }
 
@@ -174,11 +167,13 @@ public class Engine extends SurfaceView implements Runnable {
 
         score += 5;
 
-        if (score == 10){
-            Games.getAchievementsClient(context,
-                    GoogleSignIn.getLastSignedInAccount(context))
-                    .unlock(context.getString(R.string.achievement_bored));
-        }
+        if (score == 10)
+            Games.getAchievementsClient(context, GoogleSignIn.getLastSignedInAccount(context))
+                    .unlock(context.getString(R.string.achievement_newbie));
+
+        if (score == 100)
+            Games.getAchievementsClient(context, GoogleSignIn.getLastSignedInAccount(context))
+                .unlock(context.getString(R.string.achievement_newbie));
     }
 
     private void draw(){

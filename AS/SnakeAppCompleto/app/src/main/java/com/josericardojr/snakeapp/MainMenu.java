@@ -20,15 +20,14 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-
 public class MainMenu extends Activity {
 
     Button btnPlay, btnAchievements, btnLogIn, btnLogOut, btnLeaderboard;
-    GoogleSignInClient googleSignInClient;
+    private static final int RC_ACHIEVEMENT_UI = 9003;
+    private static final int RC_SIGN_IN = 9004;
+    private static final int RC_LEADERBOARD = 9005;
 
-    private static final int RC_LOGIN = 9004;
-    private static final int RC_ACHIEVEMENTS = 9005;
-    private static final int RC_LEADBOARD = 9006;
+    GoogleSignInClient googleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,46 +42,39 @@ public class MainMenu extends Activity {
         btnLeaderboard = findViewById(R.id.btnLeaderboard);
 
         googleSignInClient = GoogleSignIn.getClient(this,
-                new GoogleSignInOptions.Builder(
-                        GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN).build());
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN).build());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        signinSilent();
+        signInSilently();
     }
 
     public void onClick(View view){
 
         if (btnAchievements == view){
-            // Show the achievements
-            Games.getAchievementsClient(this,
-                    GoogleSignIn.getLastSignedInAccount(this))
+            Games.getAchievementsClient(this, GoogleSignIn.getLastSignedInAccount(this))
                     .getAchievementsIntent()
                     .addOnSuccessListener(new OnSuccessListener<Intent>() {
                         @Override
                         public void onSuccess(Intent intent) {
-                            startActivityForResult(intent, RC_ACHIEVEMENTS );
+                            startActivityForResult(intent, RC_ACHIEVEMENT_UI);
                         }
                     });
 
         } else if (btnLogOut == view){
-            // Logout the user
             signOut();
         } else if (btnLogIn == view){
-            startSigninIntent();
+            startSignInIntent();
         } else if (btnLeaderboard == view){
-            // Show Leaderboard
-            Games.getLeaderboardsClient(this,
-                    GoogleSignIn.getLastSignedInAccount(this))
-                    .getLeaderboardIntent(
-                            getString(R.string.leaderboard_high_score))
+            Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                    .getLeaderboardIntent(getString(R.string.leaderboard_easy_high_score))
                     .addOnSuccessListener(new OnSuccessListener<Intent>() {
                         @Override
                         public void onSuccess(Intent intent) {
-                            startActivityForResult(intent, RC_LEADBOARD );
+                            startActivityForResult(intent, RC_LEADERBOARD);
                         }
                     });
         } else if (btnPlay == view){
@@ -91,69 +83,59 @@ public class MainMenu extends Activity {
         }
     }
 
-    private void signinSilent(){
+    private void signInSilently() {
+
 
         googleSignInClient
                 .silentSignIn()
-                .addOnCompleteListener(new OnCompleteListener<GoogleSignInAccount>() {
+                .addOnCompleteListener(this, new OnCompleteListener<GoogleSignInAccount>() {
                     @Override
                     public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
-
-                        if (task.isSuccessful()){
-                            GoogleSignInAccount signInAccount =
-                                    task.getResult();
-                            Log.d("LOGIN", "silentSignIn() sucessfully");
+                        if (task.isSuccessful()) {
+                            GoogleSignInAccount signedInAccout = task.getResult();
+                            Log.d("LOG", "signInSilently successful");
                         } else {
-                            Log.d("LOGIN", "silentSignIn() failure");
-                            startSigninIntent();
+                            Log.d("LOG", "signInSilently failure");
+                            startSignInIntent();
                         }
                     }
                 });
+
     }
 
-    private void startSigninIntent(){
+    private void startSignInIntent(){
         Intent intent = googleSignInClient.getSignInIntent();
-        startActivityForResult(intent, RC_LOGIN);
+        startActivityForResult(intent, RC_SIGN_IN);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_LOGIN){
-
-            GoogleSignInResult result =
-                    Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+        if (requestCode == RC_SIGN_IN){
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
 
             if (result.isSuccess()){
-                GoogleSignInAccount signInAccount =
-                        result.getSignInAccount();
+                GoogleSignInAccount signedInAccout = result.getSignInAccount();
             } else {
                 String message = result.getStatus().getStatusMessage();
 
-                if (message != null || message.isEmpty()){
+                if (message == null || message.isEmpty())
                     message = "Outro erro!";
-                }
 
-                new AlertDialog.Builder(this)
-                        .setMessage(message)
-                        .setNeutralButton(android.R.string.ok, null)
-                        .show();
+                new AlertDialog.Builder(this).setMessage(message).setNeutralButton(android.R.string.ok, null).show();
             }
-        } else if (requestCode == RC_ACHIEVEMENTS){
 
-        } else if (requestCode == RC_LEADBOARD){
 
         }
     }
 
     private void signOut(){
-        googleSignInClient.signOut()
-                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
+        googleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
 
-                    }
-                });
+            }
+        });
     }
 }
