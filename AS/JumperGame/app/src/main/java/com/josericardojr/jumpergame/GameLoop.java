@@ -7,15 +7,23 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameLoop extends View implements Runnable, View.OnTouchListener {
+    private static final int SND_COLLISION_ID = 0;
+    private static final int SND_POINTS_ID = 1;
+    private static final int SND_JUMP_ID = 2;
     public static final int PIPE_DISTANCE = 300;
     public static final int FRAME_MS = 1000 / 30;
     public static final int NUM_PIPES = 7;
@@ -25,12 +33,27 @@ public class GameLoop extends View implements Runnable, View.OnTouchListener {
     Handler handler;
     int screen_w, screen_h;
     public boolean isGameOver = false;
+    SoundPool gameEffects;
+    int [] effectsId = new int[3];
 
     public GameLoop(Context context, int s_width, int s_height) {
         super(context);
         screen_w = s_width;
         screen_h = s_height;
         setOnTouchListener(this);
+
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build();
+        gameEffects = new SoundPool.Builder()
+                .setMaxStreams(5)
+                .setAudioAttributes(audioAttributes)
+                .build();
+
+        effectsId[SND_COLLISION_ID] = gameEffects.load(getContext(), R.raw.colisao, 1);
+        effectsId[SND_POINTS_ID] = gameEffects.load(getContext(), R.raw.pontos, 1);
+        effectsId[SND_JUMP_ID] = gameEffects.load(getContext(), R.raw.pulo, 1);
     }
 
 
@@ -58,17 +81,35 @@ public class GameLoop extends View implements Runnable, View.OnTouchListener {
 
                 // Check Collision
                 if (pipes[i].checkCollision(passaro.getBoundingVolume())){
+                    gameEffects.play(effectsId[SND_COLLISION_ID],
+                            1, 1, 1, 0, 1);
+                    saveScore();
                     isGameOver = true;
                     break;
                 }
 
                 if (pipes[i].getPositionX() + Pipe.PIPE_WIDTH < 0) {
+                    gameEffects.play(effectsId[SND_POINTS_ID],
+                            1, 1, 1, 0, 1);
                     int posXLastPipe = getPositionXLastPipe();
                     pipes[i].setPositionX(posXLastPipe + Pipe.PIPE_WIDTH + PIPE_DISTANCE);
                     pipes[i].respawn();
                     pontuacao += 5;
                 }
             }
+        }
+    }
+
+    private void saveScore() {
+        try {
+            FileOutputStream fos = getContext().openFileOutput("score.txt", Context.MODE_APPEND);
+            String strScore = String.valueOf(pontuacao).concat("\n");
+            fos.write (strScore.getBytes());
+            fos.close();
+        } catch (FileNotFoundException fnf){
+            fnf.printStackTrace();
+        } catch (IOException ioe){
+            ioe.printStackTrace();
         }
     }
 
@@ -123,7 +164,11 @@ public class GameLoop extends View implements Runnable, View.OnTouchListener {
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         if (motionEvent.getActionMasked() == MotionEvent.ACTION_DOWN){
-            if (!isGameOver) passaro.pula();
+            if (!isGameOver){
+                gameEffects.play(effectsId[SND_JUMP_ID],
+                        1, 1, 1, 0, 1);
+                passaro.pula();
+            }
             else startNewGame();
 
             return true;
