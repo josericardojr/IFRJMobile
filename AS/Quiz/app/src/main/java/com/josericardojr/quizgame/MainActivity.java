@@ -4,11 +4,15 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -91,6 +95,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         updateQuestion();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            blurCheatButton();
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private void blurCheatButton(){
+        RenderEffect eff =
+                RenderEffect.createBlurEffect(10.0f, 10.0f, Shader.TileMode.CLAMP);
+        cheatButton.setRenderEffect(eff);
     }
 
     private void updateQuestion(){
